@@ -10,49 +10,57 @@ class Server:
         self.umidita = 0
 
     async def client_connection(self, reader, writer):
-        while True:
-            data = await reader.readline()
-            if not data:
-                break
+        addr = writer.get_extra_info('peername')
+        print(f"Connesso client {addr[0]} , {addr[1]}")
+        try:
+            while True:
+                data = await reader.readline()
+                if not data:
+                    break
 
-            comando = data.decode().strip().upper()
+                comando = data.decode().strip().upper()
 
-            if comando == "TEMP":
-                self.temp = round(random.uniform(15.0, 27.0), 1)
-                writer.write(f"OK temperatura = {self.temp}\n".encode())
+                if comando == "TEMP":
+                    self.temp = round(random.uniform(15.0, 27.0), 1)
+                    writer.write(f"OK temperatura = {self.temp}\n".encode())
 
-            elif comando == "UMIDITA":
-                self.umidita = round(random.uniform(40.0, 65.0), 1)
-                writer.write(f"OK umidità = {self.umidita}%\n".encode())
+                elif comando == "UMIDITA":
+                    self.umidita = round(random.uniform(40.0, 65.0), 1)
+                    writer.write(f"OK umidità = {self.umidita}%\n".encode())
 
-            elif comando == "LED ON":
-                if self.LED == "ON":
-                    writer.write(f"OK il LED era già {self.LED}\n".encode())
+                elif comando == "LED ON":
+                    if self.LED == "ON":
+                        writer.write(f"OK il LED era già {self.LED}\n".encode())
+                    else:
+                        self.LED = "ON"
+                        writer.write(f"OK LED {self.LED}\n".encode())
+
+                elif comando == "LED OFF":
+                    if self.LED == "OFF":
+                        writer.write(f"OK il LED era già {self.LED}\n".encode())
+                    else:
+                        self.LED = "OFF"
+                        writer.write(f"OK LED {self.LED}\n".encode())
+
+                elif comando == "STATO":
+                    writer.write(f"OK temp = {self.temp} - umidità = {self.umidita}% - LED = {self.LED}\n".encode())
+
+                elif comando == "QUIT":
+                    writer.write(f"OK connessione chiusa\n".encode())
+                    await writer.drain()
+                    #per chiudere la connessione
+                    writer.close()
+                    await writer.wait_closed()
+                    return
+
                 else:
-                    self.LED = "ON"
-                    writer.write(f"OK LED {self.LED}\n".encode())
-
-            elif comando == "LED OFF":
-                if self.LED == "OFF":
-                    writer.write(f"OK il LED era già {self.LED}\n".encode())
-                else:
-                    self.LED = "OFF"
-                    writer.write(f"OK LED {self.LED}\n".encode())
-
-            elif comando == "STATO":
-                writer.write(f"OK temp = {self.temp} - umidità = {self.umidita}% - LED = {self.LED}\n".encode())
-
-            elif comando == "QUIT":
-                writer.write(f"OK connessione chiusa\n".encode())
+                    writer.write(f"ERR comando non riconosciuto\n".encode())
                 await writer.drain()
-                #per chiudere la connessione
-                writer.close()
-                await writer.wait_closed()
-                return
-
-            else:
-                writer.write(f"ERR comando non riconosciuto\n".encode())
-            await writer.drain()
+        except Exception as e:
+            print (f"Errore {e}")
+        finally:
+            writer.close()
+            print(f"Client {addr[0]}, {addr[1]} disconnesso")
 
 
     async def run(self):
