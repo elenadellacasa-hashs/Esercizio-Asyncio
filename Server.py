@@ -15,35 +15,44 @@ class Server:
             if not data:
                 break
 
-            comando = data.decode().strip()
+            comando = data.decode().strip().upper()
 
             if comando == "TEMP":
                 self.temp = round(random.uniform(15.0, 27.0), 1)
-                writer.write(f"OK temperatura = {self.temp}".encode())
+                writer.write(f"OK temperatura = {self.temp}\n".encode())
 
             elif comando == "UMIDITA":
                 self.umidita = round(random.uniform(40.0, 65.0), 1)
-                writer.write(f"OK umidità = {self.umidita}%".encode())
+                writer.write(f"OK umidità = {self.umidita}%\n".encode())
 
             elif comando == "LED ON":
                 if self.LED == "ON":
-                    writer.write(f"OK il LED era già {self.LED}".encode())
+                    writer.write(f"OK il LED era già {self.LED}\n".encode())
                 else:
                     self.LED = "ON"
-                    writer.write(f"OK LED {self.LED}".encode())
+                    writer.write(f"OK LED {self.LED}\n".encode())
 
             elif comando == "LED OFF":
                 if self.LED == "OFF":
-                    writer.write(f"OK il LED era già {self.LED}".encode())
+                    writer.write(f"OK il LED era già {self.LED}\n".encode())
                 else:
                     self.LED = "OFF"
-                    writer.write(f"OK LED {self.LED}".encode())
+                    writer.write(f"OK LED {self.LED}\n".encode())
 
             elif comando == "STATO":
-                writer.write(f"OK temp = {self.temp} - umidità = {self.umidita}% - LED = {self.LED}".encode())
+                writer.write(f"OK temp = {self.temp} - umidità = {self.umidita}% - LED = {self.LED}\n".encode())
 
+            elif comando == "QUIT":
+                writer.write(f"OK connessione chiusa\n".encode())
+                await writer.drain()
+                #per chiudere la connessione
+                writer.close()
+                await writer.wait_closed()
+                return
+
+            else:
+                writer.write(f"ERR comando non riconosciuto\n".encode())
             await writer.drain()
-
 
 
     async def run(self):
