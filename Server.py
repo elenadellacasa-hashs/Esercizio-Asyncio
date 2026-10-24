@@ -7,6 +7,14 @@ class Server:
         self.port = port
         self.LED = "OFF"
 
+    async def client_connection(self, reader, writer):
+        pass
+
+    async def run(self):
+        server = await asyncio.start_server(self.client_connection, self.host, self.port)
+        async with server:
+            await server.serve_forever()
+
 
 def main():
     server = Server()
