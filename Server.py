@@ -6,9 +6,45 @@ class Server:
         self.host = host
         self.port = port
         self.LED = "OFF"
+        self.temp = 0
+        self.umidita = 0
 
     async def client_connection(self, reader, writer):
-        pass
+        while True:
+            data = await reader.readline()
+            if not data:
+                break
+
+            comando = data.decode().strip()
+
+            if comando == "TEMP":
+                self.temp = round(random.uniform(15.0, 27.0), 1)
+                writer.write(f"OK temperatura = {self.temp}".encode())
+
+            elif comando == "UMIDITA":
+                self.umidita = round(random.uniform(40.0, 65.0), 1)
+                writer.write(f"OK umidità = {self.umidita}%".encode())
+
+            elif comando == "LED ON":
+                if self.LED == "ON":
+                    writer.write(f"OK il LED era già {self.LED}".encode())
+                else:
+                    self.LED = "ON"
+                    writer.write(f"OK LED {self.LED}".encode())
+
+            elif comando == "LED OFF":
+                if self.LED == "OFF":
+                    writer.write(f"OK il LED era già {self.LED}".encode())
+                else:
+                    self.LED = "OFF"
+                    writer.write(f"OK LED {self.LED}".encode())
+
+            elif comando == "STATO":
+                writer.write(f"OK temp = {self.temp} - umidità = {self.umidita}% - LED = {self.LED}".encode())
+
+            await writer.drain()
+
+
 
     async def run(self):
         server = await asyncio.start_server(self.client_connection, self.host, self.port)
