@@ -1,8 +1,10 @@
 import asyncio
 import random
 
+
 class Server:
-    def __init__(self, host="0.0.0.0",port=2208):  # host = 0.0.0.0 vuol dire che il server accetta tutte le richiesta da qualsiasi indirizzo IP
+    def __init__(self, host="0.0.0.0",
+                 port=2208):  # host = 0.0.0.0 vuol dire che il server accetta tutte le richiesta da qualsiasi indirizzo IP
         self.host = host
         self.port = port
         self.LED = "OFF"
@@ -48,20 +50,19 @@ class Server:
                 elif comando == "QUIT":
                     writer.write(f"OK connessione chiusa\n".encode())
                     await writer.drain()
-                    #per chiudere la connessione
+                    # per chiudere la connessione
                     writer.close()
                     await writer.wait_closed()
-                    return
+                    break
 
                 else:
                     writer.write(f"ERR comando non riconosciuto\n".encode())
                 await writer.drain()
         except Exception as e:
-            print (f"Errore {e}")
+            print(f"Errore {e}")
         finally:
             writer.close()
             print(f"Client {addr[0]}, {addr[1]} disconnesso")
-
 
     async def run(self):
         server = await asyncio.start_server(self.client_connection, self.host, self.port)
